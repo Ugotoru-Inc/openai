@@ -47,9 +47,33 @@ final class OpenAIChatCompletionChoiceMessageModel {
 
 // This method used to convert the [OpenAIChatCompletionChoiceMessageModel] to a [Map<String, dynamic>] object.
   Map<String, dynamic> toMap() {
+    final fragments = content?.split('%%%') ?? [];
+    final contents = [];
+    for (var i = 0; i < fragments.length; ++i) {
+      final f = fragments[i];
+      if (i == 0) {
+        contents.add({
+          "type": "text",
+          "text": "$f",
+        });
+      } else {
+        if (f.startsWith('https')) {
+          contents.add({
+            "type": "image_url",
+            "image_url": {"url": "$f"},
+          });
+        } else {
+          contents.add({
+            "type": "image_url",
+            "image_url": "data:image/jpeg;base64,$f",
+          });
+        }
+      }
+    }
+
     return {
       "role": role.name,
-      "content": content,
+      "content": contents,
       if (toolCalls != null && role == OpenAIChatMessageRole.assistant)
         "tool_calls": toolCalls!.map((toolCall) => toolCall.toMap()).toList(),
     };
